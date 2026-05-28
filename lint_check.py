@@ -28,9 +28,7 @@ from __future__ import annotations
 import ast
 import io
 import os
-import py_compile
 import sys
-import tempfile
 import tokenize
 from typing import List, Tuple
 

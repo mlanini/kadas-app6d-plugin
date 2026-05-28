@@ -10,7 +10,6 @@ of the catalog dock, or as a standalone dock accessible from the ribbon.
 from __future__ import annotations
 
 import html
-import io
 import json
 import os
 import zipfile
@@ -34,7 +33,7 @@ from qgis.PyQt.QtWidgets import (
 )
 
 from . import DARK_THEME_SS
-from ..core.models import MilSymbProject, SymbolLayer
+from ..core.models import MilSymbProject
 from ..core.utils import milsymb_data_dir
 from ..logger import get_logger
 
@@ -581,7 +580,6 @@ class LayerManagerDockWidget(QDockWidget):
             # If the user chose .kml, write unzipped KML instead
             if path.lower().endswith(".kml"):
                 import zipfile as _zf
-                import tempfile, shutil
                 tmp = path + "._tmp.kmz"
                 export_kmz(sl.symbols, sl.name, tmp, render_icons=False)
                 with _zf.ZipFile(tmp, "r") as z:

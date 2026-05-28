@@ -48,10 +48,8 @@ MilX Attribute IDs used
 from __future__ import annotations
 
 import html
-import re
 import uuid
 import xml.etree.ElementTree as ET
-from typing import Optional
 
 from .models import MilSymbol
 

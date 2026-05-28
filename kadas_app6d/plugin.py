@@ -670,7 +670,6 @@ class KadasApp6Plugin:
         Edit, but triggered by single click).
         The event is NOT consumed – KADAS continues its default handling.
         """
-        import sip
         if self._layer_manager is None:
             return
         canvas = self.iface.mapCanvas()

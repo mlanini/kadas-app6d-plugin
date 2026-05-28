@@ -301,7 +301,7 @@ class MilSymbProject:
 
     def remove_layer(self, layer_id: str) -> bool:
         before = len(self.layers)
-        self.layers = [l for l in self.layers if l.id != layer_id]
+        self.layers = [lyr for lyr in self.layers if lyr.id != layer_id]
         return len(self.layers) < before
 
     def rename_layer(self, layer_id: str, new_name: str) -> bool:
@@ -333,7 +333,7 @@ class MilSymbProject:
         return json.dumps(
             {
                 "kadas_milsymb_version": "0.2.0",
-                "layers": [l.to_dict() for l in self.layers],
+                "layers": [lyr.to_dict() for lyr in self.layers],
                 "orbats": [o.to_dict() for o in self.orbats],
             },
             indent=indent,

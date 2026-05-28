@@ -207,7 +207,7 @@ class SymbolLayerManager(QObject):
 
     def _create_mil_layer(self, sym_layer: SymbolLayer) -> QgsVectorLayer:
         """Create the single QgsVectorLayer for *sym_layer*."""
-        from .mil_renderer import MilSymbRenderer, DEFAULT_SIZE_PX
+        from .mil_renderer import MilSymbRenderer
         name = _LAYER_PREFIX + sym_layer.name
         vl = QgsVectorLayer(f"Point?crs={_CRS_WGS84}&index=yes", name, "memory")
         pr = vl.dataProvider()

@@ -43,13 +43,10 @@ On **export** each Placemark additionally gets:
 
 from __future__ import annotations
 
-import io
 import os
 import re
-import uuid
 import zipfile
 import xml.etree.ElementTree as ET
-from typing import Optional
 
 from .models import MilSymbol, TemporalExtent
 
@@ -148,7 +145,6 @@ def _render_icon_png(sidc: str, size: int = 64) -> bytes | None:
         renderer.render(painter)
         painter.end()
 
-        buf = io.BytesIO()
         pixmap = QPixmap.fromImage(image)
         ba = QByteArray()
         from qgis.PyQt.QtCore import QBuffer, QIODevice
