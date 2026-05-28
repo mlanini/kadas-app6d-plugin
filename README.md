@@ -46,14 +46,14 @@ cd kadas-app6d-plugin
 python package_plugin.py           # → dist/kadas_app6d-0.1.8.zip
 ```
 
-Then install the generated ZIP via the Plugin Manager.
+Then install the generated ZIP via the Plugin Manager.  # → Check you KADAS flavour first: Mil, Zivil or Light
 
 Or copy / symlink the `kadas_app6d/` folder directly into your KADAS plugin directory:
 
 | Platform | Path |
 |---|---|
-| Windows | `%APPDATA%\KADAS\KADAS2\profiles\default\python\plugins\` |
-| Linux | `~/.local/share/KADAS/KADAS2/profiles/default/python\plugins\` |
+| Windows | `%APPDATA%\Kadas\KadasZivil\profiles\default\python\plugins\` |
+| Linux | `~/.local/share/Kadas/KadasZivil/profiles/default/python\plugins\` |
 
 ## Usage
 
