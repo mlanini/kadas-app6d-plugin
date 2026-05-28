@@ -1,0 +1,32 @@
+[general]
+name=KADAS APP-6(D)
+qgisMinimumVersion=3.0
+qgisMaximumVersion=3.99
+description=Full NATO APP-6(D) military symbol library, ORBAT manager and temporal filtering for KADAS Albireo 2.
+about=A KADAS Albireo 2 plugin providing a complete military symbol library following the NATO APP-6(D) standard
+    (20-character SIDC), a built-in SVG/PNG rendering server, a hierarchical ORBAT (Order of Battle) editor
+    with import/export, and temporal layer filtering via the QGIS Temporal Controller.
+
+    Inspired by and built upon the shoulders of:
+    - qgis-app6d-plugin by INTELLIGEO.ch (https://github.com/intelligeo/qgis-app6d-plugin)
+    - milsymbol by Spatial Illusions (https://github.com/spatialillusions/milsymbol)
+version=0.1.8
+author=Michael Lanini
+email=mlanini@proton.me
+license=GPL-2
+
+tags=kadas,military,symbology,app6d,milstd2525,orbat,nato,tactical,sidc
+
+homepage=https://github.com/mlanini/kadas-app6d-plugin
+tracker=https://github.com/mlanini/kadas-app6d-plugin/issues
+repository=https://github.com/mlanini/kadas-app6d-plugin
+
+changelog=0.1.8 - Single-click canvas syncs Symbol Editor; companion QgsVectorLayer per layer for attribute table and Temporal Controller
+    0.1.7 - UAS/Drone category; KMZ export with embedded PNG icons; improved About dialog
+    0.1.0 - Initial release
+
+icon=icons/milsymb.svg
+experimental=False
+deprecated=False
+server=False
+hasServerInterface=False

@@ -1,0 +1,30 @@
+# Build output
+dist/
+
+# Reference documents and test data (not part of the plugin source)
+resources/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+
+# Editors
+.vscode/
+.idea/
+*.orig
+*.bak
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+#Ancilary files
+*.log
+*.tmp
+package_plugin.py
+lint_checker.py
