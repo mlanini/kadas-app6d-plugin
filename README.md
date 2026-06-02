@@ -2,7 +2,7 @@
 
 [![KADAS](https://img.shields.io/badge/KADAS-2.x-blue.svg)](https://kadas.org)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.1.8-orange.svg)](kadas_app6d/metadata.txt)
+[![Version](https://img.shields.io/badge/version-0.1.9-orange.svg)](kadas_app6d/metadata.txt)
 
 A **KADAS Albireo 2** plugin providing a complete NATO **APP-6(D)** military symbol library,
 an ORBAT (Order of Battle) manager, and temporal layer filtering.
@@ -43,10 +43,10 @@ _Coming soon._
 ```bash
 git clone https://github.com/mlanini/kadas-app6d-plugin.git
 cd kadas-app6d-plugin
-python package_plugin.py           # → dist/kadas_app6d-0.1.8.zip
+python package_plugin.py           # → dist/kadas_app6d-0.1.9.zip
 ```
 
-Then install the generated ZIP via the Plugin Manager.  # → Check you KADAS flavour first: Mil, Zivil or Light
+Then install the generated ZIP via the Plugin Manager.  → Check you KADAS flavour first: Mil, Zivil or Light
 
 Or copy / symlink the `kadas_app6d/` folder directly into your KADAS plugin directory:
 

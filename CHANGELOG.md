@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.9] – 2026-06-02
+
+### Added
+- **Drag-to-move symbols** on the map canvas: left-click and drag any symbol to
+  reposition it directly, without going through the right-click context menu.
+
+### Fixed
+- Startup layer-creation prompt shown multiple times on the same project; now
+  appears at most once per project (guarded by project key).
+- "Move Symbol" context-menu action was silently failing because the
+  `SymbolMoveTool` was immediately overwritten by KADAS when the menu closed;
+  the tool activation is now deferred via `QTimer.singleShot(0, …)`.
+- Post-move callback referenced `_symbol_editor_dock` (wrong name) instead of
+  `_editor_dock`; symbol editor no longer fails to sync after a move.
+
+---
+
 ## [0.1.8] – 2026-05-27
 
 ### Added
@@ -57,6 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/mlanini/kadas-app6d-plugin/compare/v0.1.8...HEAD
+[Unreleased]: https://github.com/mlanini/kadas-app6d-plugin/compare/v0.1.9...HEAD
+[0.1.9]: https://github.com/mlanini/kadas-app6d-plugin/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/mlanini/kadas-app6d-plugin/compare/v0.1.0...v0.1.8
 [0.1.0]: https://github.com/mlanini/kadas-app6d-plugin/releases/tag/v0.1.0

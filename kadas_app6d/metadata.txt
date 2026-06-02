@@ -10,7 +10,7 @@ about=A KADAS Albireo 2 plugin providing a complete military symbol library foll
     Inspired by and built upon the shoulders of:
     - qgis-app6d-plugin by INTELLIGEO.ch (https://github.com/intelligeo/qgis-app6d-plugin)
     - milsymbol by Spatial Illusions (https://github.com/spatialillusions/milsymbol)
-version=0.1.8
+version=0.1.9
 author=Michael Lanini
 email=mlanini@proton.me
 license=GPL-2
@@ -21,7 +21,8 @@ homepage=https://github.com/mlanini/kadas-app6d-plugin
 tracker=https://github.com/mlanini/kadas-app6d-plugin/issues
 repository=https://github.com/mlanini/kadas-app6d-plugin
 
-changelog=0.1.8 - Single-click canvas syncs Symbol Editor; companion QgsVectorLayer per layer for attribute table and Temporal Controller
+changelog=0.1.9 - Drag-to-move symbols on map canvas; fix duplicate startup layer prompt; fix symbol move after context menu
+    0.1.8 - Single-click canvas syncs Symbol Editor; companion QgsVectorLayer per layer for attribute table and Temporal Controller
     0.1.7 - UAS/Drone category; KMZ export with embedded PNG icons; improved About dialog
     0.1.0 - Initial release
 

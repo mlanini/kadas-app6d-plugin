@@ -38,6 +38,7 @@ from qgis.core import (
 )
 from qgis.gui import QgsMapCanvas
 from qgis.PyQt.QtCore import QEvent, QObject, Qt, QTimer
+from qgis.PyQt.QtWidgets import QApplication
 
 from ..logger import get_logger
 
@@ -65,6 +66,13 @@ class CanvasInteractionFilter(QObject):
     symbol_click_cb : Callable or None
         Called on single left-click release with a ``QgsPointXY`` in
         map CRS.  The event is never consumed.
+    symbol_hit_test_cb : Callable or None
+        Called with a ``QgsPointXY`` in map CRS and should return the
+        ``sym_id`` under the cursor, or ``None``.
+    symbol_drag_move_cb : Callable or None
+        Called while dragging with ``(sym_id, QgsPointXY map point)``.
+    symbol_drag_end_cb : Callable or None
+        Called when dragging finishes with ``(sym_id, QgsPointXY map point)``.
     parent : QObject or None
     """
 
@@ -75,6 +83,9 @@ class CanvasInteractionFilter(QObject):
         open_editor_cb: Callable,
         context_menu_cb: Callable | None = None,
         symbol_click_cb: Callable | None = None,
+        symbol_hit_test_cb: Callable | None = None,
+        symbol_drag_move_cb: Callable | None = None,
+        symbol_drag_end_cb: Callable | None = None,
         parent: QObject | None = None,
     ) -> None:
         super().__init__(parent)
@@ -83,10 +94,16 @@ class CanvasInteractionFilter(QObject):
         self._open_editor_cb = open_editor_cb
         self._context_menu_cb = context_menu_cb
         self._symbol_click_cb = symbol_click_cb
+        self._symbol_hit_test_cb = symbol_hit_test_cb
+        self._symbol_drag_move_cb = symbol_drag_move_cb
+        self._symbol_drag_end_cb = symbol_drag_end_cb
         # Re-entrancy guards (filter is installed on both canvas + viewport)
         self._context_menu_active = False
         self._editor_cb_active = False
         self._click_cb_active = False
+        self._drag_candidate_sym_id: str | None = None
+        self._drag_start_pos = None
+        self._dragging_sym_id: str | None = None
 
     # ------------------------------------------------------------------
     # Helpers
@@ -162,6 +179,7 @@ class CanvasInteractionFilter(QObject):
 
         # ---- Double-click (left) -> open editor --------------------------
         if evt_type == QEvent.MouseButtonDblClick:
+            self._drag_candidate_sym_id = None
             if ev.button() == Qt.LeftButton and not self._editor_cb_active:
                 map_pt = self._vp_coords_to_map(ev)
                 self._editor_cb_active = True
@@ -172,20 +190,67 @@ class CanvasInteractionFilter(QObject):
                 return bool(consumed)
             return False
 
-        # ---- Single left-click release -> open editor if symbol hit ------
-        # Independent block. Event is NEVER consumed.
+        # ---- Left press -> detect potential drag on symbol --------------
+        if evt_type == QEvent.MouseButtonPress and ev.button() == Qt.LeftButton:
+            self._drag_candidate_sym_id = None
+            self._dragging_sym_id = None
+            if self._symbol_hit_test_cb is not None:
+                map_pt = self._vp_coords_to_map(ev)
+                sym_id = self._symbol_hit_test_cb(map_pt)
+                if sym_id is not None:
+                    self._drag_candidate_sym_id = sym_id
+                    self._drag_start_pos = ev.pos()
+                    return True
+            return False
+
+        # ---- Mouse move -> start / continue drag ------------------------
+        if evt_type == QEvent.MouseMove:
+            if self._drag_candidate_sym_id is None:
+                return False
+
+            if self._drag_start_pos is None:
+                return False
+
+            pos = ev.pos()
+            moved = (pos - self._drag_start_pos).manhattanLength()
+            if self._dragging_sym_id is None:
+                if moved < QApplication.startDragDistance():
+                    return True
+                self._dragging_sym_id = self._drag_candidate_sym_id
+
+            if self._dragging_sym_id is not None and self._symbol_drag_move_cb is not None:
+                map_pt = self._vp_coords_to_map(ev)
+                self._symbol_drag_move_cb(self._dragging_sym_id, map_pt)
+                return True
+            return True
+
+        # ---- Left release -> finalize click or drag ---------------------
         if evt_type == QEvent.MouseButtonRelease and ev.button() == Qt.LeftButton:
-            if (
-                self._symbol_click_cb is not None
-                and not self._click_cb_active
-                and not self._editor_cb_active
-            ):
+            if self._drag_candidate_sym_id is not None:
+                map_pt = self._vp_coords_to_map(ev)
+                if self._dragging_sym_id is not None:
+                    if self._symbol_drag_end_cb is not None:
+                        self._symbol_drag_end_cb(self._dragging_sym_id, map_pt)
+                else:
+                    if self._symbol_click_cb is not None and not self._click_cb_active:
+                        self._click_cb_active = True
+                        QTimer.singleShot(
+                            0, lambda pt=map_pt: self._fire_click_cb(pt)
+                        )
+                self._drag_candidate_sym_id = None
+                self._drag_start_pos = None
+                self._dragging_sym_id = None
+                return True
+
+            if self._symbol_click_cb is not None and not self._click_cb_active and not self._editor_cb_active:
                 map_pt = self._vp_coords_to_map(ev)
                 self._click_cb_active = True
-                # Defer via QTimer(0): runs after the event filter returns,
-                # avoiding re-entrancy when show()/raise_() trigger new events.
                 QTimer.singleShot(0, lambda pt=map_pt: self._fire_click_cb(pt))
             return False
+
+        # ---- Single left-click release -> open editor if symbol hit ------
+        # Independent block. Event is NEVER consumed.
+        # kept for backward-compatibility in case event is not captured earlier.
 
         # ---- Right-click release -> symbol context menu ------------------
         # Independent block – must NOT be elif of the left-click block.

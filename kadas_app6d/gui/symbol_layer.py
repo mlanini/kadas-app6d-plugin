@@ -392,6 +392,31 @@ class SymbolLayerManager(QObject):
     def get_symbol(self, sym_id: str) -> Optional[MilSymbol]:
         return self._project.symbol_by_id(sym_id)
 
+    def symbol_id_at_point(
+        self, map_point: QgsPointXY, map_settings: QgsMapSettings
+    ) -> Optional[str]:
+        """Alias for hit-testing the symbol under *map_point*."""
+        return self.find_symbol_at_point(map_point, map_settings)
+
+    def move_symbol_to_point(
+        self, sym_id: str, map_point: QgsPointXY, map_settings: QgsMapSettings
+    ) -> None:
+        """Move *sym_id* to *map_point* (map CRS), updating model + feature."""
+        sym = self.get_symbol(sym_id)
+        if sym is None:
+            return
+
+        map_crs = map_settings.destinationCrs()
+        wgs84 = QgsCoordinateReferenceSystem(_CRS_WGS84)
+        pt_wgs = map_point
+        if map_crs != wgs84:
+            xform = QgsCoordinateTransform(map_crs, wgs84, QgsProject.instance())
+            pt_wgs = xform.transform(map_point)
+
+        sym.longitude = float(pt_wgs.x())
+        sym.latitude = float(pt_wgs.y())
+        self.update_symbol(sym)
+
     # ------------------------------------------------------------------
     # Hit testing
     # ------------------------------------------------------------------

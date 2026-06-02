@@ -17,6 +17,7 @@ import sys
 from qgis.PyQt.QtCore import Qt, QCoreApplication, QTimer
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction, QInputDialog, QMenu, QMessageBox
+from qgis.core import QgsProject
 
 from kadas.kadasgui import KadasPluginInterface
 
@@ -86,8 +87,17 @@ class KadasApp6Plugin:
         # Renderer metadata (for QGIS registry) - no longer used with KadasItemLayer
         self._renderer_metadata = None
 
+        # Initial layer prompt guard (avoid duplicate dialogs at startup)
+        self._initial_layer_prompt_last_project_key: str | None = None
+        self._initial_layer_prompt_scheduled = False
+
         # Temporal manager
         self._temporal_manager = None
+
+        # One-shot move tool (kept as reference while active)
+        self._symbol_move_tool = None
+        self._suppress_symbol_click_once = False
+        self._dragging_symbol_id = None
 
         # Project I/O (automatic save/load)
         self._project_io = None
@@ -227,7 +237,7 @@ class KadasApp6Plugin:
         # Prompt the user to create a first symbol layer (deferred so
         # that the UI is fully displayed and ProjectIO has had a chance
         # to restore a saved project before the dialog appears).
-        QTimer.singleShot(800, self._prompt_initial_layer)
+        self._schedule_initial_layer_prompt(800)
 
         # Install canvas interaction filter (drag&drop + double-click +
         # right-click context menu).  Right-click is handled inside the
@@ -287,6 +297,9 @@ class KadasApp6Plugin:
         self._settings_dock = None
         self._layer_manager_dock = None
         self._layer_manager = None
+        self._symbol_move_tool = None
+        self._suppress_symbol_click_once = False
+        self._dragging_symbol_id = None
 
         # Remove ribbon actions / menu
         _TAB = "APP-6(D)"
@@ -339,9 +352,17 @@ class KadasApp6Plugin:
         Skipped automatically when a project has already been loaded
         (layers list is non-empty at the time the timer fires).
         """
+        # Consume the scheduled slot and prevent multiple automatic prompts
+        self._initial_layer_prompt_scheduled = False
+        project_key = self._current_project_prompt_key()
+        if project_key == self._initial_layer_prompt_last_project_key:
+            return
+
         if self._project_data.layers:
             # A project was loaded (or user already added layers) – nothing to do
             return
+
+        self._initial_layer_prompt_last_project_key = project_key
 
         parent = self.iface.mainWindow()
         reply = QMessageBox.question(
@@ -376,6 +397,18 @@ class KadasApp6Plugin:
                     "\u201cLayer Manager\u201d panel."
                 ),
             )
+
+    def _schedule_initial_layer_prompt(self, delay_ms: int) -> None:
+        """Schedule the initial-layer prompt once, avoiding duplicate timers."""
+        if self._initial_layer_prompt_scheduled:
+            return
+        self._initial_layer_prompt_scheduled = True
+        QTimer.singleShot(delay_ms, self._prompt_initial_layer)
+
+    def _current_project_prompt_key(self) -> str:
+        """Return a stable key for the currently open QGIS project."""
+        project_path = QgsProject.instance().fileName()
+        return project_path if project_path else "__unsaved_project__"
 
     # ------------------------------------------------------------------
     # Right-click → open Symbol Editor
@@ -431,7 +464,11 @@ class KadasApp6Plugin:
         menu.addAction(act_edit)
 
         act_move = _QAction("Move Symbol", menu)
-        act_move.triggered.connect(lambda: self._on_move_symbol(sym))
+        act_move.triggered.connect(
+            lambda _checked=False, s=sym: QTimer.singleShot(
+                0, lambda: self._on_move_symbol(s)
+            )
+        )
         menu.addAction(act_move)
 
         act_zoom = _QAction("Zoom to Symbol", menu)
@@ -614,6 +651,9 @@ class KadasApp6Plugin:
                 open_editor_cb=self._open_editor_at_point,
                 context_menu_cb=self._on_canvas_context_menu_at_point,
                 symbol_click_cb=self._on_canvas_symbol_click,
+                symbol_hit_test_cb=self._symbol_id_at_point,
+                symbol_drag_move_cb=self._on_symbol_drag_move,
+                symbol_drag_end_cb=self._on_symbol_drag_end,
                 parent=canvas,
             )
             # Install on both the canvas widget and its viewport so that
@@ -672,6 +712,13 @@ class KadasApp6Plugin:
         """
         if self._layer_manager is None:
             return
+        if self._symbol_move_tool is not None:
+            return
+        if self._dragging_symbol_id is not None:
+            return
+        if self._suppress_symbol_click_once:
+            self._suppress_symbol_click_once = False
+            return
         canvas = self.iface.mapCanvas()
         sym_id = self._layer_manager.find_symbol_at_point(
             map_point, canvas.mapSettings()
@@ -691,6 +738,10 @@ class KadasApp6Plugin:
         """
         if self._layer_manager is None:
             return False
+        if self._symbol_move_tool is not None:
+            return False
+        if self._dragging_symbol_id is not None:
+            return False
         canvas = self.iface.mapCanvas()
         sym_id = self._layer_manager.find_symbol_at_point(
             map_point, canvas.mapSettings()
@@ -703,22 +754,53 @@ class KadasApp6Plugin:
         return False
 
     def _on_move_symbol(self, sym) -> None:
-        """Activate SymbolMoveTool for *sym* (click-to-reposition)."""
+        """Activate move mode for *sym* (click-to-reposition or drag)."""
         if self._layer_manager is None:
             return
         from .gui.symbol_move_tool import SymbolMoveTool
         canvas = self.iface.mapCanvas()
-        tool = SymbolMoveTool(canvas, self._layer_manager, sym.id)
-        tool.symbol_moved.connect(self._on_symbol_moved_by_tool)
-        canvas.setMapTool(tool)
+        self._symbol_move_tool = SymbolMoveTool(canvas, self._layer_manager, sym.id)
+        self._symbol_move_tool.symbol_moved.connect(self._on_symbol_moved_by_tool)
+        self._symbol_move_tool.finished.connect(self._on_symbol_move_tool_finished)
+        canvas.setMapTool(self._symbol_move_tool)
         LOG.info("SymbolMoveTool activated for sym_id=%s", sym.id[:8])
+
+    def _symbol_id_at_point(self, map_point):
+        if self._layer_manager is None:
+            return None
+        canvas = self.iface.mapCanvas()
+        return self._layer_manager.symbol_id_at_point(map_point, canvas.mapSettings())
+
+    def _on_symbol_drag_move(self, sym_id: str, map_point) -> None:
+        if self._layer_manager is None:
+            return
+        self._dragging_symbol_id = sym_id
+        self._layer_manager.move_symbol_to_point(
+            sym_id, map_point, self.iface.mapCanvas().mapSettings()
+        )
+
+    def _on_symbol_drag_end(self, sym_id: str, map_point) -> None:
+        if self._layer_manager is None:
+            self._dragging_symbol_id = None
+            return
+        self._layer_manager.move_symbol_to_point(
+            sym_id, map_point, self.iface.mapCanvas().mapSettings()
+        )
+        self._dragging_symbol_id = None
 
     def _on_symbol_moved_by_tool(self, sym_id: str) -> None:
         """Refresh editor if the moved symbol is currently open."""
-        if self._symbol_editor_dock is not None:
+        if self._editor_dock is not None:
             sym = self._layer_manager.get_symbol(sym_id) if self._layer_manager else None
             if sym is not None:
-                self._symbol_editor_dock.sync_symbol(sym)
+                self._editor_dock.sync_symbol(sym)
+
+    def _on_symbol_move_tool_finished(self, _sym_id: str, moved: bool) -> None:
+        """Clear move-mode state and suppress click-open once after placement."""
+        self._symbol_move_tool = None
+        if moved:
+            self._suppress_symbol_click_once = True
+        self._symbol_move_tool = None
 
     # ------------------------------------------------------------------
     # Temporal manager
@@ -796,7 +878,7 @@ class KadasApp6Plugin:
         # If the project was cleared (no layers), re-prompt the user
         # so they can set a proper layer name instead of inheriting "Default".
         if not project_data.layers:
-            QTimer.singleShot(300, self._prompt_initial_layer)
+            self._schedule_initial_layer_prompt(300)
 
     # ------------------------------------------------------------------
     # Temporal helpers

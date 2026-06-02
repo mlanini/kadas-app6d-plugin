@@ -46,6 +46,8 @@ class SymbolMoveTool(QgsMapTool):
 
     #: Emitted with the symbol id after a successful move.
     symbol_moved = pyqtSignal(str)
+    #: Emitted when the move tool ends: (sym_id, moved)
+    finished = pyqtSignal(str, bool)
 
     def __init__(
         self,
@@ -114,6 +116,7 @@ class SymbolMoveTool(QgsMapTool):
             sym.latitude = map_point.y()
             self._layer_manager.update_symbol(sym)
             self.symbol_moved.emit(self._sym_id)
+            self.finished.emit(self._sym_id, True)
             LOG.info(
                 "Symbol %s moved to (%.6f, %.6f)",
                 self._sym_id[:8], map_point.x(), map_point.y(),
@@ -139,6 +142,7 @@ class SymbolMoveTool(QgsMapTool):
                     LOG.debug(
                         "Symbol move cancelled – restored original position"
                     )
+            self.finished.emit(self._sym_id, False)
             self._restore_previous_tool()
 
     # ------------------------------------------------------------------
