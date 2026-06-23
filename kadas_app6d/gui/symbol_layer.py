@@ -202,8 +202,42 @@ class SymbolLayerManager(QObject):
     # ------------------------------------------------------------------
 
     def ensure_layers(self) -> None:
+        self._remove_stale_project_layers()
         for sl in self._project.layers:
             self.kadas_layer(sl.id)
+
+    def _remove_stale_project_layers(self) -> None:
+        """Remove orphan MilSymb vector layers left in the project tree.
+
+        This prevents duplicate "Point" layers when reopening projects or
+        re-enabling the plugin in the same KADAS session.
+        """
+        import sip
+
+        tracked_ids = {
+            vl.id()
+            for vl in self._kadas_layers.values()
+            if vl is not None and not sip.isdeleted(vl)
+        }
+
+        for lyr in list(QgsProject.instance().mapLayers().values()):
+            if not isinstance(lyr, QgsVectorLayer):
+                continue
+            if lyr.id() in tracked_ids:
+                continue
+            if lyr.providerType() != "memory":
+                continue
+
+            managed_prop = lyr.customProperty("kadas_milsymb_managed", False)
+            is_managed = str(managed_prop).strip().lower() in {"1", "true", "yes"}
+            if not is_managed and not lyr.name().startswith(_LAYER_PREFIX):
+                continue
+
+            try:
+                QgsProject.instance().removeMapLayer(lyr.id())
+                LOG.info("Removed stale MilSymb layer from project: %s", lyr.name())
+            except Exception as exc:
+                LOG.warning("Could not remove stale layer %s: %s", lyr.name(), exc)
 
     def _create_mil_layer(self, sym_layer: SymbolLayer) -> QgsVectorLayer:
         """Create the single QgsVectorLayer for *sym_layer*."""
@@ -235,6 +269,7 @@ class SymbolLayerManager(QObject):
         except Exception as exc:
             LOG.warning("Could not configure temporal properties: %s", exc)
 
+        vl.setCustomProperty("kadas_milsymb_managed", True)
         QgsProject.instance().addMapLayer(vl)
         self._kadas_layers[sym_layer.id] = vl
 

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.10] – 2026-06-23
+
+### Fixed
+- Layer creation at startup now produces only one visible **MilSymb** layer.
+- Stale/orphan memory point layers from previous plugin sessions are removed
+  during layer bootstrap to prevent duplicate point-only layers.
+
 ## [0.1.9] – 2026-06-02
 
 ### Added
@@ -74,7 +81,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/mlanini/kadas-app6d-plugin/compare/v0.1.9...HEAD
+[Unreleased]: https://github.com/mlanini/kadas-app6d-plugin/compare/v0.1.10...HEAD
+[0.1.10]: https://github.com/mlanini/kadas-app6d-plugin/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/mlanini/kadas-app6d-plugin/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/mlanini/kadas-app6d-plugin/compare/v0.1.0...v0.1.8
 [0.1.0]: https://github.com/mlanini/kadas-app6d-plugin/releases/tag/v0.1.0
