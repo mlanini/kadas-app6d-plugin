@@ -764,5 +764,3 @@ class LayerManagerDockWidget(QDockWidget):
         lines.append('  </Document>')
         lines.append('</kml>')
         return "\n".join(lines)
-
-

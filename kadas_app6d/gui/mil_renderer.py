@@ -105,13 +105,13 @@ def _write_svg_file(sym, show_text: bool = False) -> str:
             speed   = getattr(sym, 'speed', "") if show_text else ""
             alt     = getattr(sym, 'altitude_depth', "") if show_text else ""
             dr      = getattr(sym, 'direction', None) if show_text else None
-    
+
     # Build a unique filename
     key = f"{sidc}|{desig}|{hf}|{quant}|{staff}|{addinfo}|{evalrat}|{combeff}|{dtg}|{typestr}|{speed}|{alt}|{dr}"
     suffix = _hl.md5(key.encode(), usedforsecurity=False).hexdigest()[:8]
     fname = f"sm_{suffix}.svg"
     path = os.path.join(svg_dir, fname)
-    
+
     svg_content = cached_svg(
         sidc, desig, hf,
         quantity=quant, staff_comments=staff,

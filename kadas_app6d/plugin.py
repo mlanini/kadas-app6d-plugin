@@ -1190,15 +1190,15 @@ class KadasApp6Plugin:
 
         # ---- Body ----
         body_lbl = QLabel(
-            f"<p>Military symbol library (APP-6D) with ORBAT management<br>"
-            f"and temporal control for KADAS Albireo 2.</p>"
-            f"<p>Features:<br>"
-            f"&bull; APP-6(D) symbol catalog with 20-char SIDC<br>"
-            f"&bull; Built-in SVG/PNG rendering server<br>"
-            f"&bull; ORBAT hierarchical manager<br>"
-            f"&bull; KADAS Temporal Controller integration<br>"
-            f"&bull; KMZ export with embedded PNG icons</p>"
-            f"Code repo: <a href=\"https://github.com/mlanini/kadas-app6d-plugin\">github.com/mlanini/kadas-app6d-plugin</a></p>"
+            "<p>Military symbol library (APP-6D) with ORBAT management<br>"
+            "and temporal control for KADAS Albireo 2.</p>"
+            "<p>Features:<br>"
+            "&bull; APP-6(D) symbol catalog with 20-char SIDC<br>"
+            "&bull; Built-in SVG/PNG rendering server<br>"
+            "&bull; ORBAT hierarchical manager<br>"
+            "&bull; KADAS Temporal Controller integration<br>"
+            "&bull; KMZ export with embedded PNG icons</p>"
+            "Code repo: <a href=\"https://github.com/mlanini/kadas-app6d-plugin\">github.com/mlanini/kadas-app6d-plugin</a></p>"
         )
         body_lbl.setWordWrap(True)
         body_lbl.setOpenExternalLinks(True)

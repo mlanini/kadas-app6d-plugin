@@ -196,13 +196,10 @@ class TemporalManager(QObject):
             from qgis.core import QgsDateTimeRange, QgsInterval
             from qgis.PyQt.QtCore import QDateTime
 
-            fmt_long = "yyyy-MM-ddTHH:mm:ss"
-            fmt_date = "yyyy-MM-dd"
-
             def _parse(iso: str) -> QDateTime:
-                dt = QDateTime.fromString(iso, fmt_long)
+                dt = QDateTime.fromString(iso, "yyyy-MM-ddTHH:mm:ss")
                 if not dt.isValid():
-                    dt = QDateTime.fromString(iso[:10], fmt_date)
+                    dt = QDateTime.fromString(iso[:10], "yyyy-MM-dd")
                 return dt
 
             begin_dt = _parse(begin_iso)

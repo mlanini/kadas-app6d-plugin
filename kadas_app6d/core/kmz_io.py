@@ -295,12 +295,12 @@ def export_kmz(
         )
 
         # Extended data
-        ed = ET.SubElement(pm, f"{{{_KML_NS}}}ExtendedData")
+        ET.SubElement(pm, f"{{{_KML_NS}}}ExtendedData")
 
         def _add(name: str, value: str | None) -> None:
             if value is None or value == "":
                 return
-            d = ET.SubElement(ed, f"{{{_KML_NS}}}Data", name=name)
+            d = ET.SubElement(pm.find(f"{{{_KML_NS}}}ExtendedData"), f"{{{_KML_NS}}}Data", name=name)
             ET.SubElement(d, f"{{{_KML_NS}}}value").text = str(value)
 
         _add("APP6D_SIDC",           sym.sidc)

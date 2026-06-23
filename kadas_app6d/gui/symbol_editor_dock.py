@@ -893,7 +893,7 @@ class SymbolEditorDockWidget(QDockWidget):
         self._type_edit.setText(getattr(sym, 'type_str', ''))
         self._speed_edit.setText(getattr(sym, 'speed', ''))
         self._altitude_edit.setText(getattr(sym, 'altitude_depth', ''))
-        
+
         dr = getattr(sym, 'direction', None)
         self._direction_edit.setText(str(dr) if dr is not None else '')
 
@@ -1057,7 +1057,7 @@ class SymbolEditorDockWidget(QDockWidget):
 
         entry: CatalogEntry | None = self._entity_combo.currentData()
         entity_code = entry.entity_code if entry else "000000"
-        
+
         ctx = self._frame_combo.currentData() or "0"
         m1 = self._mod1_combo.currentData() or "00"
         m2 = self._mod2_combo.currentData() or "00"
@@ -1248,7 +1248,7 @@ class SymbolEditorDockWidget(QDockWidget):
             sym.temporal.end = (
                 self._t_end_edit.dateTime().toString(Qt.ISODate)
             )
-        
+
         sym.comment = self._comment_edit.text().strip()
         sym.quantity = self._quantity_edit.text().strip()
         sym.staff_comments = self._staff_comments_edit.text().strip()
