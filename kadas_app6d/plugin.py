@@ -1198,8 +1198,7 @@ class KadasApp6Plugin:
             f"&bull; ORBAT hierarchical manager<br>"
             f"&bull; KADAS Temporal Controller integration<br>"
             f"&bull; KMZ export with embedded PNG icons</p>"
-            f"<p>Author: {_PLUGIN_AUTHOR}<br>"
-            f"Repository: coming soon...</p>"
+            f"Code repo: <a href=\"https://github.com/mlanini/kadas-app6d-plugin\">github.com/mlanini/kadas-app6d-plugin</a></p>"
         )
         body_lbl.setWordWrap(True)
         body_lbl.setOpenExternalLinks(True)
